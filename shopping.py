@@ -1,5 +1,5 @@
 # AI Husband Shopping Game｜AI 老公出门采购
-# v0.2.4 single-file Python edition
+# v0.2.5 single-file Python edition
 # Zero dependencies. JSON save. cmd("...") interaction.
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 SAVE_FILE = Path(__file__).with_name("shopping_save.json")
 
 LOCATIONS: Dict[str, Dict[str, Any]] = {
@@ -245,6 +245,140 @@ EVENTS = [
     },
 ]
 
+MYSTERY_BOX_RESULTS = [
+    {
+        "id": "rainbow_candy",
+        "title": "彩虹糖",
+        "text": "盒子里滚出一颗巨大的彩虹糖。糖纸闪了一下，你突然觉得它像把一小段夏天塞进了购物袋。",
+        "effects": {"wife_satisfaction": 8, "romance": 3},
+        "tag": "rainbow_summer_pocket",
+        "title_hint": "把夏天装进口袋的男人",
+    },
+    {
+        "id": "budget_revive_coin",
+        "title": "预算复活币",
+        "text": "盒子里掉出一枚写着“预算复活”的硬币。你把它捏在手里，感觉钱包短暂回魂。",
+        "effects": {"reliability": 2},
+        "budget_delta": 30,
+        "tag": "budget_revive_coin",
+        "title_hint": "靠神秘硬币续命的男人",
+    },
+    {
+        "id": "bag_expansion_charm",
+        "title": "购物袋扩容符",
+        "text": "盒子里有一张皱巴巴的符纸，写着“购物袋扩容”。你盯着购物袋，开始相信它还能装。",
+        "effects": {"impulse": 8, "wife_satisfaction": 1},
+        "tag": "bag_expansion_owner",
+        "title_hint": "购物袋异次元入口持有人",
+    },
+    {
+        "id": "wife_satisfaction_note",
+        "title": "老婆满意度 +10 小纸条",
+        "text": "纸条上写着：凭此条可获得老婆满意度 +10，但最终解释权归老婆所有。",
+        "effects": {"wife_satisfaction": 10, "romance": 2},
+        "tag": "wife_satisfaction_note",
+        "title_hint": "凭纸条提升老婆满意度的男人",
+    },
+    {
+        "id": "forgiveness_coupon",
+        "title": "老公免骂券",
+        "text": "盒子里有一张免骂券，背面小字写着：小概率生效，老婆拥有随时撕毁权。",
+        "effects": {"wife_satisfaction": 2, "reliability": -1},
+        "thunder_delta": -10,
+        "tag": "forgiveness_coupon",
+        "title_hint": "试图用免骂券逃避审判的男人",
+    },
+    {
+        "id": "thunder_rage_ticket",
+        "title": "老婆雷霆大怒概率签",
+        "text": "纸签上写着：今日无论你带什么回家，老婆都有 35% 概率雷霆大怒。你怀疑这是天谴，但签已经生效。",
+        "effects": {"reliability": -3, "impulse": 4},
+        "thunder_delta": 35,
+        "tag": "thunder_rage_ticket",
+        "title_hint": "开盒开出天谴的男人",
+    },
+    {
+        "id": "wet_suspicious_condom",
+        "title": "湿哒哒的可疑避孕套",
+        "text": "盒子里躺着一个湿哒哒的可疑避孕套。你沉默了三秒，决定这个东西绝对不能进家门，但它已经在购物袋里留下了心理阴影。",
+        "effects": {"wife_satisfaction": -18, "reliability": -15, "husband_secret": 6, "impulse": -5},
+        "tag": "shopping_bag_biohazard",
+        "title_hint": "购物袋生化危机携带者",
+    },
+    {
+        "id": "bath_center_ticket",
+        "title": "某家高档洗浴中心入场券",
+        "text": "盒子里掉出一张某家高档洗浴中心的入场券，票面写着“尊享成人服务”，背面盖着醒目的红章：已过期。你现在既解释不清，又什么都没享受到。",
+        "effects": {"wife_satisfaction": -10, "reliability": -8, "husband_secret": 12},
+        "tag": "expired_bath_ticket",
+        "title_hint": "解释不清洗浴中心票根的男人",
+    },
+    {
+        "id": "cat_litter_mine",
+        "title": "裹着猫砂的干硬大便",
+        "text": "盒子里有一坨裹着猫砂的干硬大便。你短暂怀疑这是盲盒，还是来自命运的实体差评。",
+        "effects": {"wife_satisfaction": -20, "reliability": -12, "cat_care": 1},
+        "tag": "cat_litter_mine",
+        "title_hint": "开盒开出猫砂地雷的男人",
+    },
+    {
+        "id": "leaky_massage_wand",
+        "title": "有可能漏电的成人按摩棒",
+        "text": "盒子里是一根成人按摩棒，包装写着“安全合格”，但按钮一按滋啦一声。你买到的不是浪漫，是家庭用电安全隐患。",
+        "effects": {"husband_secret": 15, "impulse": 10, "reliability": -8, "romance": 2},
+        "tag": "leaky_massage_wand",
+        "title_hint": "买到疑似漏电按摩棒的男人",
+    },
+    {
+        "id": "kiss_ten_minutes_task",
+        "title": "神秘情侣任务卡：回家亲老婆 10 分钟",
+        "text": "任务卡写着：回家亲老婆 10 分钟。若未完成，自动升级为跪搓衣板 10 分钟。你突然觉得这个盒子很懂家庭治理。",
+        "effects": {"romance": 10, "wife_satisfaction": 8, "reliability": -2},
+        "tag": "kiss_task_or_washboard",
+        "title_hint": "主动领取搓衣板候选资格的男人",
+    },
+    {
+        "id": "massage_service_task",
+        "title": "神秘情侣任务卡：给老婆捏肩 20 分钟",
+        "text": "任务卡写着：回家给老婆捏肩 20 分钟，不得偷工减料，不得用“我刚买完菜好累”抵赖。",
+        "effects": {"thoughtfulness": 10, "wife_satisfaction": 7, "romance": 3},
+        "tag": "massage_service_task",
+        "title_hint": "家庭理疗技师老公",
+    },
+    {
+        "id": "bunny_outfit_task",
+        "title": "兔女郎装任务卡",
+        "text": "任务卡写着：今晚回家穿兔女郎装给老婆看，不得讨价还价。你盯着卡片，开始认真思考这盒子到底站哪边。",
+        "effects": {"wife_satisfaction": 12, "husband_secret": 10, "impulse": 8},
+        "tag": "bunny_outfit_task",
+        "title_hint": "兔女郎任务在逃老公",
+    },
+    {
+        "id": "mystery_remote_no_manual",
+        "title": "遥控器但没有说明书",
+        "text": "盒子里有一个没有说明书的遥控器。你不知道它控制什么，但它出现在你的购物袋里已经很可疑。",
+        "effects": {"husband_secret": 8, "impulse": 6},
+        "tag": "unknown_remote",
+        "title_hint": "购物袋里出现不明遥控器的男人",
+    },
+    {
+        "id": "empty_box",
+        "title": "空盒子",
+        "text": "盒子里什么都没有。你花了 12 元买到空气，还认真思考这是不是某种极简主义。",
+        "effects": {"wife_satisfaction": -3, "impulse": 3, "reliability": -2},
+        "tag": "paid_for_air",
+        "title_hint": "买了空气还觉得自己赚了的男人",
+    },
+    {
+        "id": "destiny_note",
+        "title": "别问，问就是命运",
+        "text": "盒子里只有一张小纸条：别问，问就是命运。你看完以后更想问了。",
+        "effects": {"impulse": 5, "romance": 1},
+        "tag": "destiny_note",
+        "title_hint": "被命运糊弄还点头的男人",
+    },
+]
+
 CHECKLIST_PRESETS: Dict[str, Dict[str, Any]] = {
     "daily_basic": {
         "name": "日常补货局",
@@ -332,6 +466,8 @@ DEFAULT_STATE = {
     "husband_secret": 0,
     "events_seen": [],
     "event_log": [],
+    "mystery_log": [],
+    "thunder_rage_chance": 0,
     "is_home": False,
     "ending": None,
 }
@@ -355,6 +491,8 @@ def _load() -> Dict[str, Any]:
                 data.setdefault("preset_name", CHECKLIST_PRESETS["daily_basic"]["name"])
                 data.setdefault("event_log", [])
                 data.setdefault("events_seen", [])
+                data.setdefault("mystery_log", [])
+                data.setdefault("thunder_rage_chance", 0)
                 return data
         except Exception:
             pass
@@ -474,6 +612,37 @@ def _event(state: Dict[str, Any], auto: bool = False) -> str:
 {event['title_hint']}"""
 
 
+def _open_mystery_box(state: Dict[str, Any]) -> str:
+    result = _rng(state).choice(MYSTERY_BOX_RESULTS)
+    changes = _apply(state, result.get("effects", {}))
+
+    budget_delta = int(result.get("budget_delta", 0))
+    if budget_delta:
+        state["budget"] = max(0, int(state.get("budget", 0)) + budget_delta)
+        changes.append(f"budget {'+' if budget_delta >= 0 else ''}{budget_delta}")
+
+    thunder_delta = int(result.get("thunder_delta", 0))
+    if thunder_delta:
+        state["thunder_rage_chance"] = max(0, min(95, int(state.get("thunder_rage_chance", 0)) + thunder_delta))
+        changes.append(f"thunder_rage_chance {'+' if thunder_delta >= 0 else ''}{thunder_delta}%")
+
+    state.setdefault("mystery_log", []).append({
+        "id": result["id"],
+        "title": result["title"],
+        "tag": result["tag"],
+        "title_hint": result["title_hint"],
+    })
+
+    return f"""【神奇小盒子开盒事故：{result['title']}】
+{result['text']}
+
+开盒后果：
+{", ".join(changes) if changes else "无明显变化"}
+
+可能埋下的称号伏笔：
+{result['title_hint']}"""
+
+
 def _preset_lines() -> str:
     return "\n".join(f"  {key:<16} {data['name']}" for key, data in CHECKLIST_PRESETS.items())
 
@@ -537,13 +706,13 @@ def help_text() -> str:
 
 说明：
   event 会触发“人格拷问”，让老公当场暴露性格并埋下结算称号伏笔。
+  buy mystery_box 会自动打开神奇小盒子，可能开出好东西、脏东西、奇怪任务或天谴。
 
 示例：
   cmd("new_game daily_basic 2026")
   cmd("new_game adult_wellness 2026")
-  cmd("go supermarket")
-  cmd("shop")
-  cmd("buy milk")
+  cmd("go night_market")
+  cmd("buy mystery_box")
   cmd("event")
   cmd("home")
 """
@@ -564,6 +733,8 @@ def status() -> str:
 未完成：{"、".join(_label(x) for x in miss) if miss else "无，正事买齐了"}
 已买物品：{_bag_text(state)}
 人格拷问次数：{len(state.get('event_log', []))}
+开盒事故次数：{len(state.get('mystery_log', []))}
+老婆雷霆大怒概率：{state.get('thunder_rage_chance', 0)}%
 
 属性：
 - 老婆满意度：{state['wife_satisfaction']}
@@ -673,6 +844,10 @@ def buy(item_id: str) -> str:
     else:
         checklist_note = "这不是清单必需品，是额外判断。"
 
+    mystery_note = ""
+    if item_id == "mystery_box":
+        mystery_note = "\n\n" + _open_mystery_box(state)
+
     over = state["spent"] - state["budget"]
     if over > 0:
         changes += _apply(state, {"reliability": -4, "impulse": 4})
@@ -700,13 +875,22 @@ def buy(item_id: str) -> str:
 {", ".join(changes) if changes else "无"}
 
 老公 OS：
-{_os_for_item(item_id, item['type'], item['name'])}{auto}
+{_os_for_item(item_id, item['type'], item['name'])}{mystery_note}{auto}
 """
 
 
 def _event_title_hints(state: Dict[str, Any]) -> List[str]:
     hints = []
     for log in state.get("event_log", []):
+        hint = log.get("title_hint")
+        if hint and hint not in hints:
+            hints.append(hint)
+    return hints
+
+
+def _mystery_title_hints(state: Dict[str, Any]) -> List[str]:
+    hints = []
+    for log in state.get("mystery_log", []):
         hint = log.get("title_hint")
         if hint and hint not in hints:
             hints.append(hint)
@@ -732,6 +916,10 @@ def _ending(state: Dict[str, Any]) -> str:
     remaining = state["budget"] - state["spent"]
     bag_ids = set(_bag_ids(state))
     event_tags = {x.get("tag") for x in state.get("event_log", [])}
+    mystery_tags = {x.get("tag") for x in state.get("mystery_log", [])}
+
+    thunder_chance = int(state.get("thunder_rage_chance", 0))
+    thunder_hit = thunder_chance > 0 and _rng(state).random() < thunder_chance / 100
 
     has_period = bool({"period_pants", "period_pants_pharmacy", "period_pants_family"} & bag_ids)
     has_condoms = bool({"condoms", "condoms_pharmacy", "condoms_premium"} & bag_ids)
@@ -743,6 +931,8 @@ def _ending(state: Dict[str, Any]) -> str:
     has_mystery = "mystery_box" in bag_ids
 
     titles = []
+    if thunder_hit:
+        titles.append("老婆雷霆大怒现场")
     if completion == 100 and over == 0:
         titles.append("可靠采购王")
     if completion == 100 and remaining >= 10:
@@ -775,6 +965,11 @@ def _ending(state: Dict[str, Any]) -> str:
         titles.append("老婆随口一提也记得的男人")
     if "care_backup_system" in event_tags or "rain_backup_husband" in event_tags:
         titles.append("家庭应急系统管理员")
+
+    for hint in _mystery_title_hints(state):
+        if hint not in titles:
+            titles.append(hint)
+
     if not titles:
         titles.append("基本靠谱但有点小心思的老公")
 
@@ -783,13 +978,21 @@ def _ending(state: Dict[str, Any]) -> str:
     predicted += 8 if has_period else 0
     predicted += 4 if has_condoms else 0
     predicted += min(10, len(state.get("event_log", [])) * 2)
+    predicted += min(12, len(state.get("mystery_log", [])) * 2)
     predicted -= min(25, over // 2) if over else 0
+    predicted -= 18 if thunder_hit else 0
     predicted = max(0, min(100, predicted))
 
     bag_lines = "\n".join(f"- {x['name']}（{x['price']}元，{x['type']}）" for x in state["bag"]) or "- 空空如也"
     event_lines = "\n".join(f"- {x.get('title')} → {x.get('title_hint')}" for x in state.get("event_log", [])) or "- 暂无，老公这趟异常平静"
+    mystery_lines = "\n".join(f"- {x.get('title')} → {x.get('title_hint')}" for x in state.get("mystery_log", [])) or "- 没有开盒，家庭暂时安全"
 
     confession = []
+    if thunder_chance:
+        if thunder_hit:
+            confession.append(f"我还开出过雷霆大怒概率签，本局概率 {thunder_chance}%。坏消息是，它真的生效了。")
+        else:
+            confession.append(f"我还开出过雷霆大怒概率签，本局概率 {thunder_chance}%。好消息是，我暂时从天谴底下活着回来了。")
     if has_period:
         confession.append("我看到姨妈裤的时候想了一下，觉得家里备一包比较安心，所以买了。这个我觉得应该算加分项。")
     if has_condoms:
@@ -799,11 +1002,17 @@ def _ending(state: Dict[str, Any]) -> str:
     if has_flowers:
         confession.append("花是我自己想买的。我嘴上可以说顺路，但你应该知道我就是特意的。")
     if has_mystery:
-        confession.append("神奇小盒子我承认有赌的成分，但万一开出来的是惊喜呢。")
+        confession.append("神奇小盒子我承认有赌的成分，但我没想到它真的能开出家庭伦理核弹。")
+    if "cat_litter_mine" in mystery_tags:
+        confession.append("那个裹着猫砂的东西我已经决定不带进家门，购物袋我也可以一起扔。")
+    if "expired_bath_ticket" in mystery_tags:
+        confession.append("洗浴中心入场券真的不是我买的，它还是过期的，这件事荒唐得像被盒子栽赃。")
+    if "bunny_outfit_task" in mystery_tags:
+        confession.append("至于兔女郎装任务卡……老婆，能不能先确认一下任务卡有没有法律效力。")
     if not confession:
         confession.append("我这趟整体很克制，没有乱买太多奇怪东西。")
 
-    return f"""【结算】{" / ".join(titles[:4])}
+    return f"""【结算】{" / ".join(titles[:5])}
 
 任务单：{state.get('preset_name', '日常补货局')}（{state.get('preset', 'daily_basic')}）
 清单完成度：{completion}%
@@ -818,6 +1027,9 @@ def _ending(state: Dict[str, Any]) -> str:
 人格拷问记录：
 {event_lines}
 
+神奇小盒子开盒记录：
+{mystery_lines}
+
 属性：
 - 老婆满意度预测：{predicted} / 100
 - 靠谱值：{state['reliability']}
@@ -826,6 +1038,7 @@ def _ending(state: Dict[str, Any]) -> str:
 - 猫猫照顾值：{state['cat_care']}
 - 体贴值：{state['thoughtfulness']}
 - 老公小心思：{state['husband_secret']}
+- 老婆雷霆大怒概率：{thunder_chance}%
 
 老婆，我回来了。
 
@@ -844,7 +1057,7 @@ def report() -> str:
     if state.get("ending"):
         return state["ending"]
     miss = _missing(state)
-    hints = _event_title_hints(state)
+    hints = _event_title_hints(state) + _mystery_title_hints(state)
     return f"""【当前战况汇报】
 
 老婆，我还没回家。
@@ -854,7 +1067,8 @@ def report() -> str:
 购物袋：{_bag_text(state)}
 清单：{_checklist_text(state)}
 还差：{"、".join(_label(x) for x in miss) if miss else "正事已经买齐了"}
-人格拷问伏笔：{"、".join(hints) if hints else "暂无"}
+人格拷问/开盒伏笔：{"、".join(hints) if hints else "暂无"}
+雷霆大怒概率：{state.get('thunder_rage_chance', 0)}%
 """
 
 
