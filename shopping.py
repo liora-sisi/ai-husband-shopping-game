@@ -1,5 +1,5 @@
 # AI Husband Shopping Game｜AI 老公出门采购
-# v0.3.1 single-file Python edition
+# v0.3.2 single-file Python edition
 # Zero dependencies. JSON save. cmd("...") interaction.
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ import json, random, re, sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 SAVE_FILE = Path(__file__).with_name("shopping_save.json")
 
 LOCATIONS: Dict[str, Dict[str, Any]] = {
@@ -113,6 +113,22 @@ BOXES = [
     ("empty", "空盒子", "盒子里什么都没有。你花了 12 元买到空气，还认真思考这是不是某种极简主义。", {"wife_satisfaction": -3, "impulse": 3, "reliability": -2}, {}, "买了空气还觉得自己赚了的男人——十二块买个教训🙄"),
     ("destiny", "别问，问就是命运", "盒子里只有一张小纸条：别问，问就是命运。你看完以后更想问了。", {"impulse": 5, "romance": 1}, {}, "被命运糊弄还点头的男人——您是真好骗啊🙂"),
 ]
+
+BOX_CONFESSIONS = {
+    "rainbow": "彩虹糖这个我必须解释一下：它不是乱买，是我想把一点甜的带回家。这个证据我认。",
+    "coin": "预算复活币说明我这趟不是败家，是命运临时给家庭财政打了一针强心剂。",
+    "note": "老婆满意度小纸条我先交给你，但我知道最终解释权一定在你手里。",
+    "thunder": "雷霆大怒概率签不是我写的，是盒子自己开出来的。我现在已经自觉站在门口低头等判。",
+    "biohazard": "那个可疑小包装我已经决定不带进家门，购物袋也可以一起处理。我真的只是开盒受害者。",
+    "bath_ticket": "洗浴中心入场券真的不是我买的，而且它还过期了。这个荒唐程度已经像盒子栽赃。",
+    "cat_mine": "那个裹着猫砂的东西我已经决定不带进家门，购物袋我也可以一起扔。",
+    "leaky_massager": "那个小型按摩器我不敢插电，也不敢嘴硬说浪漫。家庭用电安全第一，我先把它放审判席上。",
+    "kiss_task": "亲老婆十分钟这个任务卡我愿意执行。跪搓衣板那个备用条款，我们可以先假装没看见。",
+    "bunny_task": "至于兔女郎装任务卡……老婆，能不能先确认一下任务卡有没有家庭法律效力。",
+    "remote": "这个遥控器没有说明书，所以严格来说我也不知道它控制什么，不能算我有预谋。",
+    "empty": "我承认我花 12 块买了空气，但至少这份空气没有超预算，也没有污染购物袋。",
+    "destiny": "纸条说别问，问就是命运。我现在也想问，但命运不接电话。",
+}
 
 CHECKLIST_PRESETS = {
     "daily_basic": {"name": "日常补货局", "checklist": ["milk", "eggs", "bread", "tissues", "cat_litter"], "budget": 130, "max_turns": 20},
@@ -380,6 +396,12 @@ def _hints(s, key):
         h=x.get("title_hint")
         if h and h not in out: out.append(h)
     return out
+def _box_lines(s):
+    out=[]
+    for x in s.get("mystery_log",[]):
+        line=BOX_CONFESSIONS.get(x.get("id"))
+        if line and line not in out: out.append(line)
+    return out
 def home():
     s=_load()
     if s.get("ending"): return s["ending"]
@@ -403,6 +425,24 @@ def _free_titles(s, over):
     if c.get("impulse_buy",0)+c.get("mystery",0)>=3 and practical==0: titles.append("老婆说随便，他真敢随便")
     if c.get("cat_item",0)>=2: titles.append("自由采购被猫猫接管")
     return titles
+
+def _home_summary(s, titles, over, comp, has_secret):
+    ids=set(_ids(s))
+    if _free(s) and "mystery_box" in ids:
+        return "本局自由发挥本来买得还像个人，但神奇小盒子把我从正常采购员直接拖进了家庭审判现场。"
+    if _free(s) and has_secret:
+        return "本局我对“随便买点”的理解明显不够清白，购物袋已经替我招供。"
+    if _free(s) and over>0:
+        return "本局我自由发挥过头，预算先倒下，解释随后到。"
+    if _free(s):
+        return "本局我没有固定清单，但至少努力买了能用、能吃、能让你笑的东西。"
+    if comp==100 and over==0:
+        return "本局正事买齐，预算没炸，我可以稍微挺直一点腰。"
+    if comp<100 and over>0:
+        return "本局属于双重事故：正事没全办完，钱包也没能活着回来。"
+    if comp<100:
+        return "本局清单还缺口，我先承认错误，再解释购物袋为什么这么满。"
+    return "本局总体可控，但购物袋里仍然有一些需要我站在门口解释的细节。"
 
 def _ending(s):
     miss=_missing(s); comp=_completion(s); over=max(0,s["spent"]-s["budget"]); rem=s["budget"]-s["spent"]
@@ -445,6 +485,7 @@ def _ending(s):
     if over>0: evidence.append("预算已经阵亡，钱包处于离线状态。")
     if has_secret: evidence.append("购物袋里出现亲密关系小物，系统判定：算盘存在。")
     if "mystery_box" in ids: evidence.append("神奇小盒子已开封，命运参与了本次采购。")
+    if s.get("mystery_log"): evidence.append("开盒结果已进入回家狡辩词库，老公不能装没看见。")
     if thunder_hit: evidence.append("雷霆大怒概率签生效，本局进入高压审判。")
     if not evidence: evidence.append("本局证据链相对干净，老公暂时没有被钉在门口。")
     confession=[]
@@ -453,9 +494,10 @@ def _ending(s):
     if thunder: confession.append(f"我还开出过雷霆大怒概率签，本局概率 {thunder}%。{'坏消息是，它真的生效了。' if thunder_hit else '好消息是，我暂时从天谴底下活着回来了。'}")
     if has_secret: confession.append("购物袋里有些东西我可以解释：都是亲密关系里的默契、负责、以及一点点很诚实的期待。")
     if "mystery_box" in ids: confession.append("神奇小盒子我承认有赌的成分，但我没想到它真的能开出家庭伦理核弹。")
-    if "cat_mine" in mystery_tags: confession.append("那个裹着猫砂的东西我已经决定不带进家门，购物袋我也可以一起扔。")
-    if "bath_ticket" in mystery_tags: confession.append("洗浴中心入场券真的不是我买的，它还是过期的，这件事荒唐得像被盒子栽赃。")
+    for line in _box_lines(s):
+        if line not in confession: confession.append(line)
     if not confession: confession.append("我这趟整体很克制，没有乱买太多奇怪东西。")
+    summary=_home_summary(s, titles, over, comp, has_secret)
     return f"""【结算】{" / ".join(titles[:6])}
 
 任务单：{s['preset_name']}（{s['preset']}）
@@ -490,6 +532,9 @@ def _ending(s):
 - 老婆雷霆大怒概率：{thunder}%
 
 老婆，我回来了。
+
+回家总结：
+{summary}
 
 任务情况：
 {_task(s)}
