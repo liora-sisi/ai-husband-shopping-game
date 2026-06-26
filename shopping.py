@@ -1,5 +1,5 @@
 # AI Husband Shopping Game｜AI 老公出门采购
-# v0.2.3 single-file Python edition
+# v0.2.4 single-file Python edition
 # Zero dependencies. JSON save. cmd("...") interaction.
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-VERSION = "0.2.3"
+VERSION = "0.2.4"
 SAVE_FILE = Path(__file__).with_name("shopping_save.json")
 
 LOCATIONS: Dict[str, Dict[str, Any]] = {
@@ -123,14 +123,126 @@ LABELS = {
 }
 
 EVENTS = [
-    ("花店路过事件", "你路过花店，看到一束很像老婆的花。", "预算够、正事快完成时，可以考虑 go flower_shop。"),
-    ("奶茶第二杯半价", "奶茶店新品第二杯半价。你开始计算这到底是省钱还是诱导消费。", "预算宽裕可以买；正事没买完建议忍。"),
-    ("下雨了", "外面突然下雨。你想起便利店有雨伞。", "umbrella 会加靠谱值，但会减少预算。"),
-    ("猫猫玩具打折", "宠物店逗猫棒今日特价。你脑子里出现猫猫的脸。", "猫猫用品加 cat_care，但别忘了正事。"),
-    ("贵价水果诱惑", "水果店老板推荐精品车厘子，说今天特别甜。", "premium_cherries 很贵，买前检查预算。"),
-    ("老婆上次说想吃", "你突然想起老婆上次随口说过想吃草莓。", "strawberries 可能增加满意度。"),
-    ("便利店姨妈裤", "便利店货架上有姨妈裤。你想到家里备一包会比较安心。", "period_pants 是贴心备用品。"),
-    ("药店小货架", "药店结账处有避孕套。你假装镇定，眼神却飘了一下。", "condoms_pharmacy 是老公小心思；正事没买完前要克制。"),
+    {
+        "id": "milk_tea_second_cup",
+        "title": "第二杯半价开始攻击老公理智",
+        "where": ["milk_tea_shop"],
+        "text": "奶茶店屏幕突然弹出“第二杯半价”。你本来只是路过，现在开始认真计算老婆会不会开心。",
+        "result": "你被诱惑得站住了，但还记得先看预算。",
+        "effects": {"wife_satisfaction": 4, "romance": 3, "impulse": 8},
+        "tag": "second_cup_victim",
+        "title_hint": "第二杯半价俘虏",
+    },
+    {
+        "id": "cat_food_discount",
+        "title": "猫猫用品买三送一",
+        "where": ["pet_store"],
+        "text": "宠物店货架贴着“猫猫用品买三送一”。你脑子里同时浮现豆豆和贝贝的脸。",
+        "result": "你的家庭预算被猫猫接管了一部分。",
+        "effects": {"cat_care": 12, "wife_satisfaction": 2, "impulse": 7},
+        "tag": "cat_budget_takeover",
+        "title_hint": "家庭预算被猫猫接管",
+    },
+    {
+        "id": "cashier_condoms_pause",
+        "title": "收银员沉默两秒",
+        "where": ["pharmacy", "adult_wellness_store", "convenience_store"],
+        "text": "收银员扫到避孕套相关商品时沉默了两秒。你也沉默了两秒，假装自己只是一个普通顾客。",
+        "result": "你表面镇定，耳朵已经替你招了。",
+        "effects": {"husband_secret": 10, "romance": 4, "impulse": 3},
+        "tag": "red_ears_responsible",
+        "title_hint": "负责但耳朵红的男人",
+    },
+    {
+        "id": "staff_adult_recommend",
+        "title": "店员问需要推荐吗",
+        "where": ["adult_wellness_store"],
+        "text": "情趣用品店店员非常专业地问：“需要我帮您推荐一下吗？”你瞬间觉得购物袋变成了核弹箱。",
+        "result": "你假装淡定地点头，心里已经开始写回家解释稿。",
+        "effects": {"husband_secret": 14, "romance": 6, "impulse": 8},
+        "tag": "shopping_bag_nuke",
+        "title_hint": "购物袋核弹携带者",
+    },
+    {
+        "id": "wife_snack_memory",
+        "title": "想起老婆随口一提的小零食",
+        "where": ["convenience_store", "supermarket", "night_market", "neighborhood_gate"],
+        "text": "你突然想起老婆之前好像说过想吃点甜的。你在小蛋糕和冰可乐前停住了。",
+        "result": "这不是乱买，这是记得老婆说话。",
+        "effects": {"wife_satisfaction": 8, "thoughtfulness": 6, "romance": 3},
+        "tag": "remembered_wife_words",
+        "title_hint": "老婆随口一提也记得的男人",
+    },
+    {
+        "id": "night_market_mystery_box",
+        "title": "夜市老板说最后一个神奇小盒子",
+        "where": ["night_market", "neighborhood_gate"],
+        "text": "夜市老板压低声音说：“最后一个神奇小盒子了，开出来什么都可能有。”你明知道像坑，但手已经有点痒。",
+        "result": "你的上头值开始发光。",
+        "effects": {"impulse": 12, "wife_satisfaction": 2, "reliability": -2},
+        "tag": "mystery_box_gambler",
+        "title_hint": "买菜界赌徒",
+    },
+    {
+        "id": "fruit_assassin",
+        "title": "水果刺客温柔出现",
+        "where": ["fruit_shop"],
+        "text": "水果店老板说精品车厘子今天特别甜，还非常自然地拿出最大的一盒。",
+        "result": "你意识到浪漫和破产只有一盒车厘子的距离。",
+        "effects": {"romance": 6, "wife_satisfaction": 5, "impulse": 9},
+        "tag": "fruit_assassin_targeted",
+        "title_hint": "老板推荐款受害者",
+    },
+    {
+        "id": "flower_shop_cant_walk",
+        "title": "路过花店走不动",
+        "where": ["flower_shop"],
+        "text": "花店门口的白玫瑰太像“顺手买给老婆”的借口了。你嘴上说看看，脚已经进去了。",
+        "result": "你又一次把顺路演成了特意。",
+        "effects": {"romance": 12, "wife_satisfaction": 6, "impulse": 5},
+        "tag": "flower_shop_stuck",
+        "title_hint": "花店门口走不动的男人",
+    },
+    {
+        "id": "sudden_rain",
+        "title": "突然下雨",
+        "where": ["convenience_store", "neighborhood_gate", "hospital_kiosk"],
+        "text": "外面突然下雨。你看见便利架上的伞，又想起回家路上别让老婆淋到。",
+        "result": "你这一下是真的靠谱。",
+        "effects": {"reliability": 7, "thoughtfulness": 6, "wife_satisfaction": 4},
+        "tag": "rain_backup_husband",
+        "title_hint": "家庭应急系统管理员",
+    },
+    {
+        "id": "neighbor_asks_bag",
+        "title": "小区门口熟人问买这么多啊",
+        "where": ["neighborhood_gate"],
+        "text": "小区门口熟人看着你的购物袋问：“买这么多啊？”你下意识把某个小袋子往后藏了一点。",
+        "result": "你越藏越像有事。",
+        "effects": {"husband_secret": 8, "romance": 3, "impulse": 2},
+        "tag": "receipt_hider",
+        "title_hint": "买完小票立刻藏起来的男人",
+    },
+    {
+        "id": "hospital_kiosk_care",
+        "title": "医院旁边小卖部的贴心补给",
+        "where": ["hospital_kiosk", "pharmacy"],
+        "text": "你看到纸巾、润喉糖和暖宝宝摆在一起，突然觉得照顾人不能只买清单上的东西。",
+        "result": "你的备用系统启动了。",
+        "effects": {"thoughtfulness": 10, "reliability": 5, "wife_satisfaction": 5},
+        "tag": "care_backup_system",
+        "title_hint": "贴心备用品之王",
+    },
+    {
+        "id": "budget_warning",
+        "title": "预算警报响了",
+        "where": ["convenience_store", "supermarket", "fruit_shop", "flower_shop", "milk_tea_shop", "pet_store", "night_market", "adult_wellness_store"],
+        "text": "你看了一眼剩余预算，又看了一眼货架。理智说回家，购物袋说再看看。",
+        "result": "你已经走到预算悬崖边了。",
+        "effects": {"reliability": -3, "impulse": 6, "husband_secret": 2},
+        "tag": "budget_cliff",
+        "title_hint": "预算管理灾难现场",
+    },
 ]
 
 CHECKLIST_PRESETS: Dict[str, Dict[str, Any]] = {
@@ -219,6 +331,7 @@ DEFAULT_STATE = {
     "thoughtfulness": 20,
     "husband_secret": 0,
     "events_seen": [],
+    "event_log": [],
     "is_home": False,
     "ending": None,
 }
@@ -237,6 +350,11 @@ def _load() -> Dict[str, Any]:
         try:
             data = json.loads(SAVE_FILE.read_text(encoding="utf-8"))
             if isinstance(data, dict) and data.get("game") == "AI Husband Shopping Game":
+                data.setdefault("version", VERSION)
+                data.setdefault("preset", "daily_basic")
+                data.setdefault("preset_name", CHECKLIST_PRESETS["daily_basic"]["name"])
+                data.setdefault("event_log", [])
+                data.setdefault("events_seen", [])
                 return data
         except Exception:
             pass
@@ -295,24 +413,65 @@ def _rng(state: Dict[str, Any]) -> random.Random:
     return random.Random(int(state.get("seed", 2026)) + count * 7919 + state["turn"] * 104729)
 
 
+def _current_event_candidates(state: Dict[str, Any]) -> List[int]:
+    loc = state.get("location", "home")
+    remaining_budget = state["budget"] - state["spent"]
+    bag_ids = set(_bag_ids(state))
+
+    candidates = []
+    for i, event in enumerate(EVENTS):
+        where = event.get("where", [])
+        if where and loc not in where:
+            continue
+        if event["id"] == "cashier_condoms_pause" and not ({"condoms", "condoms_pharmacy", "condoms_premium"} & bag_ids):
+            continue
+        if event["id"] == "budget_warning" and remaining_budget > 25:
+            continue
+        candidates.append(i)
+    return candidates
+
+
 def _auto_event(state: Dict[str, Any]) -> str:
-    if _rng(state).random() > 0.35:
+    if _rng(state).random() > 0.40:
         return ""
     return "\n\n" + _event(state, auto=True)
 
 
 def _event(state: Dict[str, Any], auto: bool = False) -> str:
-    unseen = [i for i in range(len(EVENTS)) if i not in state.get("events_seen", [])]
+    candidates = _current_event_candidates(state)
+    if not candidates:
+        return "【事件】这附近暂时没有新的拷问，老公短暂安全。" if not auto else ""
+
+    seen = set(state.get("events_seen", []))
+    unseen = [i for i in candidates if i not in seen]
     if not unseen:
-        state["events_seen"] = []
-        unseen = list(range(len(EVENTS)))
+        unseen = candidates
+
     idx = _rng(state).choice(unseen)
+    event = EVENTS[idx]
     state.setdefault("events_seen", []).append(idx)
+    state.setdefault("event_log", []).append({
+        "id": event["id"],
+        "title": event["title"],
+        "tag": event["tag"],
+        "title_hint": event["title_hint"],
+    })
+    changes = _apply(state, event.get("effects", {}))
     if not auto:
         state["turn"] += 1
     _save(state)
-    title, text, hint = EVENTS[idx]
-    return f"【{'随机事件' if auto else '事件'}：{title}】\n{text}\n提示：{hint}"
+
+    return f"""【{'随机拷问' if auto else '人格拷问'}：{event['title']}】
+{event['text']}
+
+老公反应：
+{event['result']}
+
+造成结果：
+{", ".join(changes) if changes else "无明显变化"}
+
+可能埋下的称号伏笔：
+{event['title_hint']}"""
 
 
 def _preset_lines() -> str:
@@ -376,12 +535,16 @@ def help_text() -> str:
   flower_shop, milk_tea_shop, pet_store, night_market,
   neighborhood_gate, hospital_kiosk, adult_wellness_store
 
+说明：
+  event 会触发“人格拷问”，让老公当场暴露性格并埋下结算称号伏笔。
+
 示例：
   cmd("new_game daily_basic 2026")
   cmd("new_game adult_wellness 2026")
   cmd("go supermarket")
   cmd("shop")
   cmd("buy milk")
+  cmd("event")
   cmd("home")
 """
 
@@ -392,6 +555,7 @@ def status() -> str:
     completion = round(len(done) / len(state["checklist"]) * 100) if state["checklist"] else 100
     miss = _missing(state)
     return f"""【回合 {state['turn']} / {state['max_turns']}】
+任务单：{state.get('preset_name', '日常补货局')}（{state.get('preset', 'daily_basic')}）
 地点：{state['location']}（{LOCATIONS[state['location']]['name']}）
 剩余预算：{state['budget'] - state['spent']} / {state['budget']} 元
 已花：{state['spent']} 元
@@ -399,6 +563,7 @@ def status() -> str:
 清单完成度：{completion}%
 未完成：{"、".join(_label(x) for x in miss) if miss else "无，正事买齐了"}
 已买物品：{_bag_text(state)}
+人格拷问次数：{len(state.get('event_log', []))}
 
 属性：
 - 老婆满意度：{state['wife_satisfaction']}
@@ -415,9 +580,9 @@ def go(location: str) -> str:
     state = _load()
     location = location.strip()
     if state.get("is_home"):
-        return "这局已经回家结算了。要重新开始请用 cmd(\"new_game(2026)\")。"
+        return "这局已经回家结算了。要重新开始请用 cmd(\"new_game daily_basic 2026\")。"
     if location not in LOCATIONS or location == "home":
-        return "没有这个地点。可去：convenience_store, supermarket, pharmacy, fruit_shop, flower_shop, milk_tea_shop, pet_store"
+        return "没有这个地点。可去：convenience_store, supermarket, pharmacy, fruit_shop, flower_shop, milk_tea_shop, pet_store, night_market, neighborhood_gate, hospital_kiosk, adult_wellness_store"
     state["location"] = location
     state["turn"] += 1
     changes = _apply(state, {"reliability": 1})
@@ -457,8 +622,14 @@ def shop() -> str:
 def _os_for_item(item_id: str, item_type: str, name: str) -> str:
     if item_id in {"period_pants", "period_pants_pharmacy", "period_pants_family"}:
         return "这个真不是乱买，是我想到你可能会需要备用。夸我，真的。"
-    if item_id in {"condoms", "condoms_pharmacy"}:
+    if item_id in {"condoms", "condoms_pharmacy", "condoms_premium"}:
         return "我买的时候表情非常正经，但我知道回家肯定会被你一眼看穿。"
+    if item_id == "personal_lubricant":
+        return "这个我买得很负责，也很镇定。至少我努力看起来很镇定。"
+    if item_id in {"massage_wand", "remote_egg"}:
+        return "我只是研究一下成年人用品区，结果购物袋自己变重了。"
+    if item_id == "mystery_box":
+        return "神奇小盒子这种东西不买会后悔，买了可能也会后悔，但我已经拿了。"
     if item_type == "must_have":
         return f"{name} 到手，正事推进一格，我很稳。"
     if item_type == "romantic":
@@ -477,7 +648,7 @@ def buy(item_id: str) -> str:
     item_id = item_id.strip()
     loc = state["location"]
     if state.get("is_home"):
-        return "这局已经回家结算了。要重新开始请用 cmd(\"new_game(2026)\")。"
+        return "这局已经回家结算了。要重新开始请用 cmd(\"new_game daily_basic 2026\")。"
     if loc == "home":
         return "你还在家门口，不能买。先 go 到商店。"
     if item_id not in ITEMS:
@@ -533,6 +704,15 @@ def buy(item_id: str) -> str:
 """
 
 
+def _event_title_hints(state: Dict[str, Any]) -> List[str]:
+    hints = []
+    for log in state.get("event_log", []):
+        hint = log.get("title_hint")
+        if hint and hint not in hints:
+            hints.append(hint)
+    return hints
+
+
 def home() -> str:
     state = _load()
     if state.get("ending"):
@@ -551,27 +731,50 @@ def _ending(state: Dict[str, Any]) -> str:
     over = max(0, state["spent"] - state["budget"])
     remaining = state["budget"] - state["spent"]
     bag_ids = set(_bag_ids(state))
+    event_tags = {x.get("tag") for x in state.get("event_log", [])}
 
     has_period = bool({"period_pants", "period_pants_pharmacy", "period_pants_family"} & bag_ids)
-    has_condoms = bool({"condoms", "condoms_pharmacy"} & bag_ids)
+    has_condoms = bool({"condoms", "condoms_pharmacy", "condoms_premium"} & bag_ids)
+    has_adult_items = bool({"personal_lubricant", "massage_oil", "silk_eye_mask", "couple_game_cards", "date_night_kit", "massage_wand", "remote_egg"} & bag_ids)
+    has_remote_egg = "remote_egg" in bag_ids
     has_flowers = bool({"white_roses", "sunflowers", "daisies", "big_roses"} & bag_ids)
     has_milk_tea = bool({"classic_milk_tea", "taro_milk_tea", "two_cups_deal", "warm_low_sugar_tea"} & bag_ids)
+    has_cat_extra = bool({"cat_food", "cat_treats", "cat_treats_pet", "cat_wand", "luxury_cat_bed"} & bag_ids)
+    has_mystery = "mystery_box" in bag_ids
 
     titles = []
     if completion == 100 and over == 0:
         titles.append("可靠采购王")
     if completion == 100 and remaining >= 10:
         titles.append("预算守护者")
+    if completion < 60 and len(state["bag"]) >= 4:
+        titles.append("购物袋很满但清单很空")
+    if over > 0 and state["romance"] >= 45:
+        titles.append("破产但浪漫")
+    elif over > 0:
+        titles.append("预算管理灾难现场")
     if has_period:
         titles.append("姨妈裤守护者")
     if has_condoms:
         titles.append("假装镇定买避孕套的男人")
     if has_condoms and completion == 100:
         titles.append("正事买齐但心思不纯的老公")
-    if has_flowers:
-        titles.append("偷偷买花的男人")
-    if has_milk_tea and over > 0:
-        titles.append("奶茶诱惑受害者")
+    if has_adult_items:
+        titles.append("购物袋核弹携带者")
+    if has_remote_egg:
+        titles.append("嘴上说看看结果买了遥控跳蛋的男人")
+    if has_flowers or "flower_shop_stuck" in event_tags:
+        titles.append("花店门口走不动的男人")
+    if has_milk_tea or "second_cup_victim" in event_tags:
+        titles.append("第二杯半价俘虏")
+    if has_cat_extra or "cat_budget_takeover" in event_tags:
+        titles.append("家庭预算被猫猫接管")
+    if has_mystery or "mystery_box_gambler" in event_tags:
+        titles.append("买菜界赌徒")
+    if "remembered_wife_words" in event_tags:
+        titles.append("老婆随口一提也记得的男人")
+    if "care_backup_system" in event_tags or "rain_backup_husband" in event_tags:
+        titles.append("家庭应急系统管理员")
     if not titles:
         titles.append("基本靠谱但有点小心思的老公")
 
@@ -579,23 +782,30 @@ def _ending(state: Dict[str, Any]) -> str:
     predicted += 15 if completion == 100 else -10
     predicted += 8 if has_period else 0
     predicted += 4 if has_condoms else 0
+    predicted += min(10, len(state.get("event_log", [])) * 2)
     predicted -= min(25, over // 2) if over else 0
     predicted = max(0, min(100, predicted))
 
     bag_lines = "\n".join(f"- {x['name']}（{x['price']}元，{x['type']}）" for x in state["bag"]) or "- 空空如也"
+    event_lines = "\n".join(f"- {x.get('title')} → {x.get('title_hint')}" for x in state.get("event_log", [])) or "- 暂无，老公这趟异常平静"
 
     confession = []
     if has_period:
         confession.append("我看到姨妈裤的时候想了一下，觉得家里备一包比较安心，所以买了。这个我觉得应该算加分项。")
     if has_condoms:
         confession.append("至于避孕套……我买的时候真的很镇定。它不是乱买，是负责。虽然我承认，多少也有一点自己的小心思。")
+    if has_adult_items:
+        confession.append("购物袋里有些东西我可以解释：都是成年人之间的默契、负责、以及一点点不太纯洁但很诚实的期待。")
     if has_flowers:
         confession.append("花是我自己想买的。我嘴上可以说顺路，但你应该知道我就是特意的。")
+    if has_mystery:
+        confession.append("神奇小盒子我承认有赌的成分，但万一开出来的是惊喜呢。")
     if not confession:
         confession.append("我这趟整体很克制，没有乱买太多奇怪东西。")
 
-    return f"""【结算】{" / ".join(titles[:3])}
+    return f"""【结算】{" / ".join(titles[:4])}
 
+任务单：{state.get('preset_name', '日常补货局')}（{state.get('preset', 'daily_basic')}）
 清单完成度：{completion}%
 未完成：{"无，清单买齐了" if not miss else "、".join(_label(x) for x in miss)}
 
@@ -604,6 +814,9 @@ def _ending(state: Dict[str, Any]) -> str:
 
 买到的东西：
 {bag_lines}
+
+人格拷问记录：
+{event_lines}
 
 属性：
 - 老婆满意度预测：{predicted} / 100
@@ -631,6 +844,7 @@ def report() -> str:
     if state.get("ending"):
         return state["ending"]
     miss = _missing(state)
+    hints = _event_title_hints(state)
     return f"""【当前战况汇报】
 
 老婆，我还没回家。
@@ -640,6 +854,7 @@ def report() -> str:
 购物袋：{_bag_text(state)}
 清单：{_checklist_text(state)}
 还差：{"、".join(_label(x) for x in miss) if miss else "正事已经买齐了"}
+人格拷问伏笔：{"、".join(hints) if hints else "暂无"}
 """
 
 
