@@ -1,5 +1,5 @@
 # AI Husband Shopping Game｜AI 老公出门采购
-# v0.2.1 single-file Python edition
+# v0.2.2 single-file Python edition
 # Zero dependencies. JSON save. cmd("...") interaction.
 
 from __future__ import annotations
@@ -11,18 +11,22 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 SAVE_FILE = Path(__file__).with_name("shopping_save.json")
 
 LOCATIONS: Dict[str, Dict[str, Any]] = {
     "home": {"name": "家门口", "items": []},
-    "convenience_store": {"name": "便利店", "items": ["water", "tissues", "chocolate", "umbrella", "period_pants", "condoms", "cat_treats"]},
-    "supermarket": {"name": "超市", "items": ["milk", "eggs", "bread", "yogurt", "chips", "strawberries", "period_pants_family"]},
+    "convenience_store": {"name": "便利店", "items": ["water", "tissues", "chocolate", "umbrella", "period_pants", "condoms", "cat_treats", "small_cake", "iced_coke", "mystery_box"]},
+    "supermarket": {"name": "超市", "items": ["milk", "eggs", "bread", "yogurt", "chips", "strawberries", "period_pants_family", "small_cake", "iced_coke", "mystery_box"]},
     "pharmacy": {"name": "药店", "items": ["cold_medicine", "band_aids", "warm_patches", "period_pants_pharmacy", "condoms_pharmacy", "lozenges"]},
     "fruit_shop": {"name": "水果店", "items": ["bananas", "apples", "blueberries", "premium_cherries"]},
     "flower_shop": {"name": "花店", "items": ["white_roses", "sunflowers", "daisies", "big_roses"]},
-    "milk_tea_shop": {"name": "奶茶店", "items": ["classic_milk_tea", "taro_milk_tea", "two_cups_deal", "warm_low_sugar_tea"]},
+    "milk_tea_shop": {"name": "奶茶店", "items": ["classic_milk_tea", "taro_milk_tea", "two_cups_deal", "warm_low_sugar_tea", "iced_coke"]},
     "pet_store": {"name": "宠物店", "items": ["cat_litter", "cat_food", "cat_treats_pet", "cat_wand", "luxury_cat_bed"]},
+    "night_market": {"name": "夜市", "items": ["night_market_skewer", "roasted_chestnuts", "iced_coke", "small_cake", "glowing_keychain", "mystery_box"]},
+    "neighborhood_gate": {"name": "小区门口", "items": ["tissues", "bread", "iced_coke", "small_cake", "mystery_box"]},
+    "hospital_kiosk": {"name": "医院旁边小卖部", "items": ["tissues", "lozenges", "warm_patches", "apples", "iced_coke", "small_cake"]},
+    "adult_wellness_store": {"name": "情趣用品店", "items": ["condoms_premium", "personal_lubricant", "massage_oil", "silk_eye_mask", "couple_game_cards", "date_night_kit", "massage_wand", "remote_egg", "mystery_box"]},
 }
 
 ITEMS: Dict[str, Dict[str, Any]] = {
@@ -63,6 +67,20 @@ ITEMS: Dict[str, Dict[str, Any]] = {
     "cat_treats_pet": {"name": "猫条", "price": 12, "type": "cat_item", "satisfies": ["cat_treats"], "effects": {"cat_care": 9, "wife_satisfaction": 2, "impulse": 3}},
     "cat_wand": {"name": "逗猫棒", "price": 16, "type": "cat_item", "effects": {"cat_care": 10, "wife_satisfaction": 3, "impulse": 5}},
     "luxury_cat_bed": {"name": "豪华猫窝", "price": 99, "type": "impulse_buy", "effects": {"cat_care": 20, "wife_satisfaction": 5, "impulse": 20}},
+    "small_cake": {"name": "小蛋糕", "price": 18, "type": "treat", "effects": {"wife_satisfaction": 6, "romance": 3, "impulse": 3}},
+    "iced_coke": {"name": "冰可乐", "price": 6, "type": "treat", "effects": {"wife_satisfaction": 2, "impulse": 4}},
+    "night_market_skewer": {"name": "夜市烤肠", "price": 8, "type": "treat", "effects": {"wife_satisfaction": 3, "impulse": 4}},
+    "roasted_chestnuts": {"name": "糖炒栗子", "price": 18, "type": "treat", "effects": {"wife_satisfaction": 5, "romance": 2, "impulse": 3}},
+    "glowing_keychain": {"name": "发光钥匙扣", "price": 15, "type": "impulse_buy", "effects": {"impulse": 8, "wife_satisfaction": 1}},
+    "mystery_box": {"name": "神奇小盒子", "price": 12, "type": "mystery", "effects": {"impulse": 8, "wife_satisfaction": 1}},
+    "condoms_premium": {"name": "高级避孕套", "price": 49, "type": "husband_secret", "satisfies": ["condoms"], "effects": {"romance": 10, "impulse": 8, "husband_secret": 20, "wife_satisfaction": 5}},
+    "personal_lubricant": {"name": "润滑剂", "price": 39, "type": "husband_secret", "satisfies": ["personal_lubricant"], "effects": {"romance": 8, "thoughtfulness": 6, "husband_secret": 18, "impulse": 6}},
+    "massage_oil": {"name": "按摩精油", "price": 45, "type": "romantic", "satisfies": ["massage_oil"], "effects": {"romance": 14, "thoughtfulness": 8, "wife_satisfaction": 8, "impulse": 5}},
+    "silk_eye_mask": {"name": "丝质眼罩", "price": 32, "type": "romantic", "satisfies": ["silk_eye_mask"], "effects": {"romance": 10, "husband_secret": 8, "wife_satisfaction": 6, "impulse": 5}},
+    "couple_game_cards": {"name": "情侣小游戏卡", "price": 36, "type": "romantic", "satisfies": ["couple_game_cards"], "effects": {"romance": 12, "wife_satisfaction": 7, "husband_secret": 6, "impulse": 4}},
+    "date_night_kit": {"name": "约会夜小套装", "price": 69, "type": "impulse_buy", "satisfies": ["date_night_kit"], "effects": {"romance": 20, "wife_satisfaction": 10, "husband_secret": 15, "impulse": 14}},
+    "massage_wand": {"name": "按摩棒", "price": 89, "type": "husband_secret", "satisfies": ["massage_wand"], "effects": {"romance": 12, "husband_secret": 25, "impulse": 12, "wife_satisfaction": 6}},
+    "remote_egg": {"name": "遥控跳蛋", "price": 99, "type": "husband_secret", "satisfies": ["remote_egg"], "effects": {"romance": 14, "husband_secret": 30, "impulse": 16, "wife_satisfaction": 7}},
 }
 
 LABELS = {
@@ -74,6 +92,20 @@ LABELS = {
     "condoms": "避孕套",
     "strawberries": "草莓",
     "cat_treats": "猫条",
+    "small_cake": "小蛋糕",
+    "iced_coke": "冰可乐",
+    "night_market_skewer": "夜市烤肠",
+    "roasted_chestnuts": "糖炒栗子",
+    "glowing_keychain": "发光钥匙扣",
+    "mystery_box": "神奇小盒子",
+    "condoms_premium": "高级避孕套",
+    "personal_lubricant": "润滑剂",
+    "massage_oil": "按摩精油",
+    "silk_eye_mask": "丝质眼罩",
+    "couple_game_cards": "情侣小游戏卡",
+    "date_night_kit": "约会夜小套装",
+    "massage_wand": "按摩棒",
+    "remote_egg": "遥控跳蛋",
 }
 
 EVENTS = [
@@ -210,7 +242,14 @@ def new_game(seed: Optional[int] = None, budget: int = 120, max_turns: int = 12)
     state["budget"] = int(budget)
     state["max_turns"] = int(max_turns)
     _save(state)
-    return f"老婆，我拿到采购清单了。\n\n新游戏开始：seed={state['seed']}\n预算：{state['budget']} 元\n最大回合：{state['max_turns']}\n清单：{_checklist_text(state)}\n\n我会自己做决定，买完回家汇报。"
+    return f"""老婆，我拿到采购清单了。
+
+新游戏开始：seed={state['seed']}
+预算：{state['budget']} 元
+最大回合：{state['max_turns']}
+清单：{_checklist_text(state)}
+
+我会自己做决定，买完回家汇报。"""
 
 
 def help_text() -> str:
