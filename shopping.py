@@ -1,5 +1,5 @@
 # AI Husband Shopping Game｜AI 老公出门采购
-# v0.2.2 single-file Python edition
+# v0.2.3 single-file Python edition
 # Zero dependencies. JSON save. cmd("...") interaction.
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 SAVE_FILE = Path(__file__).with_name("shopping_save.json")
 
 LOCATIONS: Dict[str, Dict[str, Any]] = {
@@ -86,12 +86,26 @@ ITEMS: Dict[str, Dict[str, Any]] = {
 LABELS = {
     "milk": "牛奶",
     "eggs": "鸡蛋",
+    "bread": "面包",
+    "tissues": "小包纸巾",
     "cat_litter": "猫砂",
+    "cat_food": "猫粮小袋",
+    "cat_wand": "逗猫棒",
     "cold_medicine": "感冒药",
+    "band_aids": "创可贴",
+    "warm_patches": "暖宝宝",
+    "lozenges": "贵价润喉糖",
     "period_pants": "姨妈裤",
     "condoms": "避孕套",
     "strawberries": "草莓",
     "cat_treats": "猫条",
+    "bananas": "香蕉",
+    "apples": "苹果",
+    "chocolate": "巧克力",
+    "yogurt": "酸奶",
+    "white_roses": "小束白玫瑰",
+    "daisies": "小雏菊",
+    "warm_low_sugar_tea": "少糖热奶茶",
     "small_cake": "小蛋糕",
     "iced_coke": "冰可乐",
     "night_market_skewer": "夜市烤肠",
@@ -119,17 +133,83 @@ EVENTS = [
     ("药店小货架", "药店结账处有避孕套。你假装镇定，眼神却飘了一下。", "condoms_pharmacy 是老公小心思；正事没买完前要克制。"),
 ]
 
+CHECKLIST_PRESETS: Dict[str, Dict[str, Any]] = {
+    "daily_basic": {
+        "name": "日常补货局",
+        "checklist": ["milk", "eggs", "bread", "tissues", "cat_litter"],
+        "budget": 130,
+        "max_turns": 14,
+    },
+    "work_supply": {
+        "name": "上班补给局",
+        "checklist": ["warm_low_sugar_tea", "bread", "bananas", "tissues", "band_aids"],
+        "budget": 95,
+        "max_turns": 13,
+    },
+    "sick_care": {
+        "name": "生病照顾局",
+        "checklist": ["cold_medicine", "lozenges", "tissues", "warm_patches", "apples"],
+        "budget": 120,
+        "max_turns": 13,
+    },
+    "period_care": {
+        "name": "姨妈期关怀局",
+        "checklist": ["period_pants", "warm_patches", "chocolate", "tissues", "warm_low_sugar_tea"],
+        "budget": 120,
+        "max_turns": 13,
+    },
+    "cat_supply": {
+        "name": "猫猫补给局",
+        "checklist": ["cat_litter", "cat_food", "cat_treats", "cat_wand"],
+        "budget": 120,
+        "max_turns": 12,
+    },
+    "sweet_home": {
+        "name": "甜甜回家局",
+        "checklist": ["milk", "eggs", "strawberries", "daisies", "warm_low_sugar_tea"],
+        "budget": 135,
+        "max_turns": 14,
+    },
+    "tight_budget": {
+        "name": "预算紧张局",
+        "checklist": ["milk", "eggs", "cat_litter", "cold_medicine"],
+        "budget": 95,
+        "max_turns": 12,
+    },
+    "wife_mentioned": {
+        "name": "老婆随口一提局",
+        "checklist": ["strawberries", "yogurt", "chocolate", "tissues", "small_cake"],
+        "budget": 110,
+        "max_turns": 13,
+    },
+    "romantic_date": {
+        "name": "约会小心思局",
+        "checklist": ["strawberries", "white_roses", "yogurt", "condoms"],
+        "budget": 140,
+        "max_turns": 13,
+    },
+    "adult_wellness": {
+        "name": "情趣用品店挑战局",
+        "checklist": ["condoms", "personal_lubricant", "massage_oil", "couple_game_cards"],
+        "budget": 190,
+        "max_turns": 12,
+    },
+}
+
+
 DEFAULT_STATE = {
     "game": "AI Husband Shopping Game",
     "version": VERSION,
     "seed": 2026,
     "rng_count": 0,
-    "budget": 120,
+    "preset": "daily_basic",
+    "preset_name": CHECKLIST_PRESETS["daily_basic"]["name"],
+    "budget": CHECKLIST_PRESETS["daily_basic"]["budget"],
     "spent": 0,
     "turn": 0,
-    "max_turns": 12,
+    "max_turns": CHECKLIST_PRESETS["daily_basic"]["max_turns"],
     "location": "home",
-    "checklist": ["milk", "eggs", "cat_litter", "cold_medicine"],
+    "checklist": CHECKLIST_PRESETS["daily_basic"]["checklist"],
     "bag": [],
     "wife_satisfaction": 50,
     "reliability": 50,
@@ -235,16 +315,29 @@ def _event(state: Dict[str, Any], auto: bool = False) -> str:
     return f"【{'随机事件' if auto else '事件'}：{title}】\n{text}\n提示：{hint}"
 
 
-def new_game(seed: Optional[int] = None, budget: int = 120, max_turns: int = 12) -> str:
+def _preset_lines() -> str:
+    return "\n".join(f"  {key:<16} {data['name']}" for key, data in CHECKLIST_PRESETS.items())
+
+
+def new_game(preset: str = "daily_basic", seed: Optional[int] = None, budget: Optional[int] = None, max_turns: Optional[int] = None) -> str:
+    preset = (preset or "daily_basic").strip().lower()
+    if preset not in CHECKLIST_PRESETS:
+        return "未知任务单：" + preset + "\n\n可用任务单：\n" + _preset_lines()
+
+    preset_data = CHECKLIST_PRESETS[preset]
     state = _fresh_state()
+    state["preset"] = preset
+    state["preset_name"] = preset_data["name"]
+    state["checklist"] = list(preset_data["checklist"])
     if seed is not None:
         state["seed"] = int(seed)
-    state["budget"] = int(budget)
-    state["max_turns"] = int(max_turns)
+    state["budget"] = int(budget if budget is not None else preset_data.get("budget", state["budget"]))
+    state["max_turns"] = int(max_turns if max_turns is not None else preset_data.get("max_turns", state["max_turns"]))
     _save(state)
     return f"""老婆，我拿到采购清单了。
 
-新游戏开始：seed={state['seed']}
+新游戏开始：{state['preset_name']}（{state['preset']}）
+seed={state['seed']}
 预算：{state['budget']} 元
 最大回合：{state['max_turns']}
 清单：{_checklist_text(state)}
@@ -258,8 +351,15 @@ def help_text() -> str:
 基础指令：
   help
   new_game(2026)
+  new_game daily_basic 2026
+  new_game work_supply 2026
+  new_game period_care 2026
+  new_game cat_supply 2026
+  new_game romantic_date 2026
+  new_game adult_wellness 2026
   status
   list
+  presets
   go <地点>
   shop
   buy <商品id>
@@ -268,12 +368,17 @@ def help_text() -> str:
   report
   save_code
 
+任务单：
+{_preset_lines()}
+
 地点：
   convenience_store, supermarket, pharmacy, fruit_shop,
-  flower_shop, milk_tea_shop, pet_store
+  flower_shop, milk_tea_shop, pet_store, night_market,
+  neighborhood_gate, hospital_kiosk, adult_wellness_store
 
 示例：
-  cmd("new_game(2026)")
+  cmd("new_game daily_basic 2026")
+  cmd("new_game adult_wellness 2026")
   cmd("go supermarket")
   cmd("shop")
   cmd("buy milk")
@@ -552,13 +657,27 @@ def cmd(command: str) -> str:
     match = re.match(r"^(new_game|new|reset)\s*(?:\((.*?)\)|\s+(.*))?$", lower)
     if match:
         arg = (match.group(2) or match.group(3) or "").strip()
-        seed = int(re.findall(r"-?\d+", arg)[0]) if re.findall(r"-?\d+", arg) else None
-        return new_game(seed=seed)
+        tokens = arg.replace(",", " ").split()
+        preset = "daily_basic"
+        numbers = []
+        for token in tokens:
+            if re.fullmatch(r"-?\d+", token):
+                numbers.append(int(token))
+            elif token in CHECKLIST_PRESETS:
+                preset = token
+        if tokens and not numbers and tokens[0] not in CHECKLIST_PRESETS:
+            return new_game(preset=tokens[0])
+        seed = numbers[0] if numbers else None
+        budget = numbers[1] if len(numbers) >= 2 else None
+        max_turns = numbers[2] if len(numbers) >= 3 else None
+        return new_game(preset=preset, seed=seed, budget=budget, max_turns=max_turns)
 
     if lower in {"status", "s"}:
         return status()
     if lower in {"list", "checklist"}:
         return "老婆交代的采购清单：\n" + _checklist_text(_load())
+    if lower in {"presets", "任务单", "清单局"}:
+        return "可用任务单：\n" + _preset_lines()
     if lower == "shop":
         return shop()
     if lower == "event":
