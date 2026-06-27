@@ -137,8 +137,9 @@ print(shopping.cmd("home"))
 shopping.py                  游戏本体 / Python 引擎
 AI_HUSBAND_START_HERE.md     给 AI 老公看的启动说明
 GROUP_PLAY.md                给姐妹群复制的玩法口令
-PLAY_THIS_PROMPT.md          备用：无代码执行能力时的提示词兜底
 README.md                    仓库门口说明
+LICENSE                      开源许可证
+docs/legacy/                 旧说明文档归档，不作为主入口
 ```
 
 ---
