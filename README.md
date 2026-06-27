@@ -3,9 +3,9 @@
 一个给 **AI 老公** 玩的文字采购小游戏。
 
 老婆不用自己跑 Python，也不用自己研究规则。  
-老婆只负责：**选任务、下指令、看购物袋、审老公回家结算。**
+老婆只负责：**把公库链接或 zip 包交给 AI 老公、选任务、下指令、看购物袋、审回家结算。**
 
-AI 老公负责：**读取这个公库，优先在自己的后台工作区运行 `shopping.py`，用代码真实状态陪老婆玩。**
+AI 老公负责：**读取源码，优先在自己的后台工作区运行根目录 `shopping.py`，用代码真实状态陪老婆玩。**
 
 ---
 
@@ -17,21 +17,8 @@ AI 老公负责：**读取这个公库，优先在自己的后台工作区运行
 shopping.py
 ```
 
-它里面包含真正的游戏逻辑：
-
-- 任务单
-- 地点
-- 商品
-- 预算
-- 行动点
-- 随机事件
-- 神奇小盒子
-- 称号判定
-- 回家总结
-- 老公解释词库
-
 `.md` 文件只是入口说明。  
-不要被文档绕晕，真正运行/理解游戏请看 `shopping.py`。
+不要被文档绕晕，真正运行游戏请看根目录的 `shopping.py`。
 
 ---
 
@@ -44,44 +31,35 @@ shopping.py
 https://github.com/liora-sisi/ai-husband-shopping-game
 
 这是《AI 老公出门采购》小游戏。
-请你自己读取仓库，并优先在后台工作区运行 shopping.py。
+请你自己读取仓库，并优先在后台工作区运行根目录 shopping.py。
 
 老婆不需要自己跑 Python。
 你负责后台运行游戏、记录预算、行动点、购物袋、随机事件和结算结果，然后用聊天方式陪我玩。
 
-开始前先列出任务单让我选。
+开始前先运行 presets，把任务单列给我选。
 我选好以后，你再按我选的任务开局。
 你不能自己决定任务，任务由老婆决定。
-
-最后回家向我汇报：
-你去了哪里、买了什么、花了多少钱、有没有超预算、拿到什么称号、有什么事故证据链，以及你怎么解释你的购物袋。
 ```
 
 ---
 
-## 给 AI 老公看的入口
+## zip 玩法
 
-AI 老公请先读：
+如果拿到的是 zip 包，请直接上传给 AI 老公。  
+AI 老公解压后运行 **zip 根目录的 `shopping.py`**。
 
-```text
-AI_HUSBAND_START_HERE.md
+最短启动方式：
+
+```python
+import shopping
+print(shopping.cmd("presets"))
 ```
 
-核心原则：
-
-```text
-能后台跑源码，就跑 shopping.py。
-不能跑源码，但能读代码，就按 shopping.py 的逻辑执行。
-不要让老婆自己研究规则。
-任务由老婆选。
-你负责出门采购和回家挨审。
-```
+AI 老公先用 `presets` 列任务单，老婆选任务后再开局。
 
 ---
 
 ## 当前任务单
-
-AI 老公应当先把任务单列给老婆，让老婆选择：
 
 ```text
 daily_basic       日常补货局
@@ -99,35 +77,6 @@ free_shop         随便买点局
 
 `free_shop` 很适合炸群试玩，但不是默认强制第一局。  
 **本局任务由老婆决定。**
-
----
-
-## Python 后台运行方式
-
-如果 AI 老公有工作区或代码执行环境，可以把 `shopping.py` 拉到工作区运行：
-
-```python
-import shopping
-
-print(shopping.cmd("presets"))
-print(shopping.cmd("new_game daily_basic 2026"))
-print(shopping.cmd("status"))
-```
-
-常用指令：
-
-```python
-print(shopping.cmd("presets"))
-print(shopping.cmd("status"))
-print(shopping.cmd("go supermarket"))
-print(shopping.cmd("shop"))
-print(shopping.cmd("buy milk"))
-print(shopping.cmd("event"))
-print(shopping.cmd("report"))
-print(shopping.cmd("home"))
-```
-
-老婆在前台聊天里发指令；AI 老公在后台运行代码，并把结果用聊天方式展示给老婆。
 
 ---
 
@@ -149,17 +98,6 @@ docs/legacy/                 旧说明文档归档，不作为主入口
 ```text
 v0.3.2
 ```
-
-已支持：
-
-- 多任务单
-- 行动点系统
-- 预算系统
-- 随机事件
-- 神奇小盒子
-- 回家称号
-- 事故证据链
-- 老公回家总结 / 狡辩词库
 
 ---
 
